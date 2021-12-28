@@ -1,4 +1,13 @@
-import { AppBar, Typography, Toolbar, Container, Link } from '@material-ui/core'
+import {
+  AppBar,
+  Typography,
+  Toolbar,
+  Container,
+  Link,
+  createTheme,
+  CssBaseline,
+  ThemeProvider,
+} from '@material-ui/core'
 import Head from 'next/head'
 import React, { ReactElement } from 'react'
 import useStyles from '../utils/styles'
@@ -11,6 +20,32 @@ interface ILayout {
 }
 
 function Layout({ children, title, description }: ILayout) {
+  const theme = createTheme({
+    typography: {
+      h1: {
+        fontSize: '1.6rem',
+        fontWeight: 400,
+        margin: '1rem 0',
+      },
+      h2: {
+        fontSize: '1.4rem',
+        fontWeight: 400,
+        margin: '1rem 0',
+      },
+      body1: {
+        fontWeight: 'normal',
+      },
+    },
+    palette: {
+      type: 'light',
+      primary: {
+        main: '#f0c000',
+      },
+      secondary: {
+        main: '#208080',
+      },
+    },
+  })
   const classes = useStyles()
 
   return (
@@ -19,7 +54,8 @@ function Layout({ children, title, description }: ILayout) {
         <title> {title ? `${title} - Just Shop` : 'Just Shop'} </title>
         {description && <meta name="description" content={description}></meta>}
       </Head>
-      <div>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
         <AppBar className={classes.navbar} position="static">
           <Toolbar>
             <NextLink href="/" passHref>
@@ -44,7 +80,7 @@ function Layout({ children, title, description }: ILayout) {
             all rights reserved. Juste Shop
           </Typography>
         </footer>
-      </div>
+      </ThemeProvider>
     </>
   )
 }

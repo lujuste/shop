@@ -7,11 +7,14 @@ import {
   createTheme,
   CssBaseline,
   ThemeProvider,
+  Switch,
 } from '@material-ui/core'
 import Head from 'next/head'
-import React, { ReactElement } from 'react'
+import React, { ReactElement, useContext } from 'react'
 import useStyles from '../utils/styles'
 import NextLink from 'next/link'
+import { Store } from '../utils/Store'
+import Cookies from 'js-cookie'
 
 interface ILayout {
   children: ReactElement | ReactElement[]
@@ -20,6 +23,8 @@ interface ILayout {
 }
 
 function Layout({ children, title, description }: ILayout) {
+  const { state, dispatch }: any = useContext(Store)
+  const { darkMode } = state
   const theme = createTheme({
     typography: {
       h1: {
@@ -37,7 +42,7 @@ function Layout({ children, title, description }: ILayout) {
       },
     },
     palette: {
-      type: 'light',
+      type: darkMode ? 'dark' : 'light',
       primary: {
         main: '#f0c000',
       },
@@ -47,6 +52,13 @@ function Layout({ children, title, description }: ILayout) {
     },
   })
   const classes = useStyles()
+  const darkModeChangeHandler = () => {
+    dispatch({
+      type: darkMode ? 'DARK_MODE_OFF' : 'DARK_MODE_ON',
+    })
+    const newDarkMode = !darkMode
+    Cookies.set('darkMode', newDarkMode ? 'ON' : 'OFF')
+  }
 
   return (
     <>
@@ -65,6 +77,10 @@ function Layout({ children, title, description }: ILayout) {
             </NextLink>
             <div className={classes.grow}></div>
             <div>
+              <Switch
+                checked={darkMode}
+                onChange={darkModeChangeHandler}
+              ></Switch>
               <NextLink href="/cart">
                 <Link>Cart</Link>
               </NextLink>

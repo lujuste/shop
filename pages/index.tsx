@@ -1,4 +1,6 @@
 import type { NextPage } from 'next'
+import { useContext } from 'react'
+import axios from 'axios'
 import {
   Grid,
   Card,
@@ -15,6 +17,8 @@ import NextLink from 'next/link'
 import Layout from '../components/Layout'
 import db from '../utils/db'
 import Product from '../models/Product'
+import { Store } from '../utils/Store'
+import { useRouter } from 'next/router'
 
 interface IProductItem {
   _id?: string
@@ -36,6 +40,30 @@ interface IProductsProps {
 }
 
 const Home = ({ products }: IProductsProps) => {
+  const router = useRouter()
+  const { state, dispatch }: any = useContext(Store)
+
+  const addToCardHandler = async (product: IProductItem) => {
+    const { data } = await axios.get(`/api/products/${product._id}`)
+    if (data.countInStock <= 0) {
+      window.alert('Produto indisponível')
+      return
+    }
+
+    const existItem = state.cart.cartItems.find(
+      (x: any) => x._id === product._id
+    )
+    const quantity = existItem ? existItem.quantity + 1 : 1
+
+    if (data.countInStock < quantity) {
+      window.alert('Produto indisponível')
+      return
+    }
+
+    dispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity } })
+    router.push('/cart')
+  }
+
   return (
     <Layout>
       <div>
@@ -59,7 +87,11 @@ const Home = ({ products }: IProductsProps) => {
                 </NextLink>
                 <CardActions>
                   <Typography> ${product.price} </Typography>
-                  <Button size="small" color="primary">
+                  <Button
+                    onClick={() => addToCardHandler(product)}
+                    size="small"
+                    color="primary"
+                  >
                     {' '}
                     Add to cart
                   </Button>

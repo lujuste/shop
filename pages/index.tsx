@@ -17,16 +17,16 @@ import db from '../utils/db'
 import Product from '../models/Product'
 
 interface IProductItem {
-  _id: string
+  _id?: string
   slug: string
   name: string
   category: string
   image: string
-  price: Number
+  price: number
   brand: string
-  rating: Number
-  numReviews: Number
-  countInStock: Number
+  rating: number
+  numReviews: number
+  countInStock: number
   description: string
 }
 

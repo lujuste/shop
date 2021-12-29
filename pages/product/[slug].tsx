@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router'
+import router, { useRouter } from 'next/router'
 import React, { useContext } from 'react'
 import axios from 'axios'
 import NextLink from 'next/link'
@@ -26,40 +26,42 @@ interface IProductItem {
   name: string
   category: string
   image: string
-  price: Number
+  price: number
   brand: string
-  rating: Number
-  numReviews: Number
-  countInStock: Number
+  rating: number
+  numReviews: number
+  countInStock: number
   description: string
 }
 
 interface IProductsProps {
-  products: IProductItem
+  product: IProductItem
   children?: JSX.Element[]
 }
 
-export default function ProductScreen({ products }: IProductsProps) {
+export default function ProductScreen({ product }: IProductsProps) {
   const classes = useStyles()
+  const router = useRouter()
   const { state, dispatch }: any = useContext(Store)
 
-  if (!products) {
+  if (!product) {
     return <div>Product not found</div>
   }
 
   const addToCartHandler = async () => {
     //@ts-ignore
 
-    const { data }: any = await axios.get(`/api/products/${products._id}`)
+    const { data }: any = await axios.get(`/api/products/${product._id}`)
     if (data.countInStock <= 0) {
       window.alert('Produto indisponível')
       return
     }
-    dispatch({ type: 'CART_ADD_ITEM', payload: { ...products, quantity: 1 } })
+    dispatch({ type: 'CART_ADD_ITEM', payload: { ...product, quantity: 1 } })
+    router.push('/cart')
   }
 
   return (
-    <Layout title={products.name}>
+    <Layout title={product.name}>
       <div className={classes.section}>
         <NextLink href="/" passHref>
           <Link>
@@ -70,8 +72,8 @@ export default function ProductScreen({ products }: IProductsProps) {
       <Grid container spacing={1}>
         <Grid item md={6} xs={12}>
           <Image
-            src={products.image}
-            alt={products.name}
+            src={product.image}
+            alt={product.name}
             width={640}
             height={640}
             layout="responsive"
@@ -81,22 +83,22 @@ export default function ProductScreen({ products }: IProductsProps) {
           <List>
             <ListItem>
               <Typography component="h1" variant="h1">
-                {products.name}
+                {product.name}
               </Typography>
             </ListItem>
             <ListItem>
-              <Typography>Category: {products.category}</Typography>
+              <Typography>Category: {product.category}</Typography>
             </ListItem>
             <ListItem>
-              <Typography>Brand: {products.brand}</Typography>
+              <Typography>Brand: {product.brand}</Typography>
             </ListItem>
             <ListItem>
               <Typography>
-                Rating: {products.rating} stars ({products.numReviews} reviews)
+                Rating: {product.rating} stars ({product.numReviews} reviews)
               </Typography>
             </ListItem>
             <ListItem>
-              <Typography> Description: {products.description}</Typography>
+              <Typography> Description: {product.description}</Typography>
             </ListItem>
           </List>
         </Grid>
@@ -109,7 +111,7 @@ export default function ProductScreen({ products }: IProductsProps) {
                     <Typography>Price</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography>${products.price}</Typography>
+                    <Typography>${product.price}</Typography>
                   </Grid>
                 </Grid>
               </ListItem>
@@ -120,7 +122,7 @@ export default function ProductScreen({ products }: IProductsProps) {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography>
-                      {products.countInStock > 0 ? 'In stock' : 'Unavailable'}
+                      {product.countInStock > 0 ? 'In stock' : 'Unavailable'}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -148,12 +150,12 @@ export const getServerSideProps: GetServerSideProps = async context => {
   //@ts-ignore
   const { slug } = params
   await db.connect()
-  const products = await Product.findOne({ slug }).lean()
+  const product = await Product.findOne({ slug }).lean()
   await db.disconnect()
 
   return {
     props: {
-      products: db.convertDocObj(products),
+      product: db.convertDocObj(product),
     },
   }
 }

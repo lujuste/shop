@@ -9,18 +9,39 @@ import {
   CardActions,
   Button,
 } from '@material-ui/core'
-import data from '../utils/data'
+
 import NextLink from 'next/link'
 
 import Layout from '../components/Layout'
+import db from '../utils/db'
+import Product from '../models/Product'
 
-const Home: NextPage = () => {
+interface IProductItem {
+  slug: string
+  name: string
+  category: string
+  image: string
+  price: Number
+  brand: string
+  rating: Number
+  numReviews: Number
+  countInStock: Number
+  description: string
+}
+
+interface IProductsProps {
+  products: IProductItem[]
+  children?: JSX.Element[]
+}
+
+const Home = ({ products }: IProductsProps) => {
   return (
     <Layout>
       <div>
         <h1>Products</h1>
+
         <Grid container spacing={3}>
-          {data.products.map(product => (
+          {products.map(product => (
             <Grid item md={4} key={product.name}>
               <Card>
                 <NextLink href={`/product/${product.slug}`}>
@@ -52,3 +73,15 @@ const Home: NextPage = () => {
 }
 
 export default Home
+
+export async function getServerSideProps() {
+  await db.connect()
+  const products = await Product.find({}).lean()
+  await db.disconnect()
+
+  return {
+    props: {
+      products: products.map(db.convertDocObj),
+    },
+  }
+}

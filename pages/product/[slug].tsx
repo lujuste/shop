@@ -14,19 +14,37 @@ import Layout from '../../components/Layout'
 import data from '../../utils/data'
 import useStyles from '../../utils/styles'
 import Image from 'next/image'
+import db from '../../utils/db'
+import Product from '../../models/Product'
+import { GetServerSideProps } from 'next'
 
-export default function ProductScreen() {
+interface IProductItem {
+  slug: string
+  name: string
+  category: string
+  image: string
+  price: Number
+  brand: string
+  rating: Number
+  numReviews: Number
+  countInStock: Number
+  description: string
+}
+
+interface IProductsProps {
+  products: IProductItem
+  children?: JSX.Element[]
+}
+
+export default function ProductScreen({ products }: IProductsProps) {
   const classes = useStyles()
-  const router = useRouter()
-  const { slug } = router.query
-  const product = data.products.find(a => a.slug === slug)
 
-  if (!product) {
+  if (!products) {
     return <div>Product not found</div>
   }
 
   return (
-    <Layout title={product.name}>
+    <Layout title={products.name}>
       <div className={classes.section}>
         <NextLink href="/" passHref>
           <Link>
@@ -37,8 +55,8 @@ export default function ProductScreen() {
       <Grid container spacing={1}>
         <Grid item md={6} xs={12}>
           <Image
-            src={product.image}
-            alt={product.name}
+            src={products.image}
+            alt={products.name}
             width={640}
             height={640}
             layout="responsive"
@@ -48,22 +66,22 @@ export default function ProductScreen() {
           <List>
             <ListItem>
               <Typography component="h1" variant="h1">
-                {product.name}
+                {products.name}
               </Typography>
             </ListItem>
             <ListItem>
-              <Typography>Category: {product.category}</Typography>
+              <Typography>Category: {products.category}</Typography>
             </ListItem>
             <ListItem>
-              <Typography>Brand: {product.brand}</Typography>
+              <Typography>Brand: {products.brand}</Typography>
             </ListItem>
             <ListItem>
               <Typography>
-                Rating: {product.rating} stars ({product.numReviews} reviews)
+                Rating: {products.rating} stars ({products.numReviews} reviews)
               </Typography>
             </ListItem>
             <ListItem>
-              <Typography> Description: {product.description}</Typography>
+              <Typography> Description: {products.description}</Typography>
             </ListItem>
           </List>
         </Grid>
@@ -76,7 +94,7 @@ export default function ProductScreen() {
                     <Typography>Price</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography>${product.price}</Typography>
+                    <Typography>${products.price}</Typography>
                   </Grid>
                 </Grid>
               </ListItem>
@@ -87,7 +105,7 @@ export default function ProductScreen() {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography>
-                      {product.countInStock > 0 ? 'In stock' : 'Unavailable'}
+                      {products.countInStock > 0 ? 'In stock' : 'Unavailable'}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -103,4 +121,19 @@ export default function ProductScreen() {
       </Grid>
     </Layout>
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async context => {
+  const { params } = context
+  //@ts-ignore
+  const { slug } = params
+  await db.connect()
+  const products = await Product.findOne({ slug }).lean()
+  await db.disconnect()
+
+  return {
+    props: {
+      products: db.convertDocObj(products),
+    },
+  }
 }

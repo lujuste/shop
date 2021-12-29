@@ -8,6 +8,7 @@ import {
   CssBaseline,
   ThemeProvider,
   Switch,
+  Badge,
 } from '@material-ui/core'
 import Head from 'next/head'
 import React, { ReactElement, useContext } from 'react'
@@ -24,7 +25,7 @@ interface ILayout {
 
 function Layout({ children, title, description }: ILayout) {
   const { state, dispatch }: any = useContext(Store)
-  const { darkMode } = state
+  const { darkMode, cart } = state
   const theme = createTheme({
     typography: {
       h1: {
@@ -82,7 +83,19 @@ function Layout({ children, title, description }: ILayout) {
                 onChange={darkModeChangeHandler}
               ></Switch>
               <NextLink href="/cart">
-                <Link>Cart</Link>
+                <Link>
+                  {cart?.cartItems.length > 0 ? (
+                    <Badge
+                      color="secondary"
+                      badgeContent={cart.cartItems.length}
+                    >
+                      {' '}
+                      Cart{' '}
+                    </Badge>
+                  ) : (
+                    'Cart'
+                  )}
+                </Link>
               </NextLink>
               <NextLink href="/login">
                 <Link>Login</Link>

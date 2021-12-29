@@ -17,6 +17,7 @@ import db from '../utils/db'
 import Product from '../models/Product'
 
 interface IProductItem {
+  _id: string
   slug: string
   name: string
   category: string

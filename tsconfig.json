@@ -23,7 +23,8 @@
     "pages/_app.jsx",
     "pages/_document.jsx",
     "pages/index.jsx",
-    "utils/db.tsx"
+    "utils/db.tsx",
+    "utils/Store.tsx"
   ],
   "exclude": ["node_modules"]
 }

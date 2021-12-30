@@ -50,16 +50,15 @@ export default function ProductScreen({ product }: IProductsProps) {
 
   const addToCartHandler = async () => {
     //@ts-ignore
-
+    const existItem = state.cart.cartItems.find(
+      (x: any) => x._id === product._id
+    )
+    const quantity = existItem ? existItem.quantity + 1 : 1
     const { data }: any = await axios.get(`/api/products/${product._id}`)
     if (data.countInStock < quantity) {
       window.alert('Produto indisponível')
       return
     }
-    const existItem = state.cart.cartItems.find(
-      (x: any) => x._id === product._id
-    )
-    const quantity = existItem ? existItem.quantity + 1 : 1
 
     if (data.countInStock < quantity) {
       window.alert('Produto indisponível')

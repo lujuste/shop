@@ -1,5 +1,4 @@
 // @ts-nocheck
-
 import {
   List,
   ListItem,
@@ -57,7 +56,7 @@ export default function Shipping() {
   }
   return (
     <Layout title="Shipping Address">
-      <CheckoutWizard step={1}></CheckoutWizard>
+      <CheckoutWizard activeStep={1} />
       <form onSubmit={handleSubmit(submitHandler)} className={classes.form}>
         <Typography component="h1" variant="h1">
           Shipping Address

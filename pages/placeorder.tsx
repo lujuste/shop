@@ -1,9 +1,8 @@
-// @ts-nocheck
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import Layout from '../components/Layout'
 import { Store } from '../utils/Store'
 import NextLink from 'next/link'
-import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import {
   Grid,
@@ -15,28 +14,31 @@ import {
   TableRow,
   TableCell,
   Link,
-  Select,
-  MenuItem,
+  CircularProgress,
   Button,
   Card,
   List,
   ListItem,
 } from '@material-ui/core'
 import axios from 'axios'
-import router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import useStyles from '../utils/styles'
 import CheckoutWizard from '../components/checkoutWizard'
+import { useSnackbar } from 'notistack'
+import { getError } from '../utils/error'
+import Cookies from 'js-cookie'
 
-function Placeorder() {
+function PlaceOrder() {
   const classes = useStyles()
   const router = useRouter()
-  const { state, dispatch } = useContext(Store)
+  const { state, dispatch }: any = useContext(Store)
   const {
+    userInfo,
     cart: { cartItems, shippingAddress, paymentMethod },
   } = state
-  const round2 = num => Math.round(num * 100 + Number.EPSILON) / 100
+  const round2 = (num: any) => Math.round(num * 100 + Number.EPSILON) / 100 // 123.456 => 123.46
   const itemsPrice = round2(
-    cartItems.reduce((a, c) => a + c.price * c.quantity, 0)
+    cartItems.reduce((a: any, c: any) => a + c.price * c.quantity, 0)
   )
   const shippingPrice = itemsPrice > 200 ? 0 : 15
   const taxPrice = round2(itemsPrice * 0.15)
@@ -46,10 +48,44 @@ function Placeorder() {
     if (!paymentMethod) {
       router.push('/payment')
     }
+    if (cartItems.length === 0) {
+      router.push('/cart')
+    }
   }, [])
-
+  const { closeSnackbar, enqueueSnackbar } = useSnackbar()
+  const [loading, setLoading] = useState(false)
+  const placeOrderHandler = async () => {
+    closeSnackbar()
+    try {
+      setLoading(true)
+      const { data } = await axios.post(
+        '/api/orders',
+        {
+          orderItems: cartItems,
+          shippingAddress,
+          paymentMethod,
+          itemsPrice,
+          shippingPrice,
+          taxPrice,
+          totalPrice,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${userInfo.token}`,
+          },
+        }
+      )
+      dispatch({ type: 'CART_CLEAR' })
+      Cookies.remove('cartItems')
+      setLoading(false)
+      router.push(`/order/${data._id}`)
+    } catch (err) {
+      setLoading(false)
+      enqueueSnackbar('Algo deu errado', { variant: 'error' })
+    }
+  }
   return (
-    <Layout title="Shopping Cart">
+    <Layout title="Place Order">
       <CheckoutWizard activeStep={3}></CheckoutWizard>
       <Typography component="h1" variant="h1">
         Place Order
@@ -67,7 +103,7 @@ function Placeorder() {
               <ListItem>
                 {shippingAddress.fullName}, {shippingAddress.address},{' '}
                 {shippingAddress.city}, {shippingAddress.postalCode},{' '}
-                {shippingAddress.country},
+                {shippingAddress.country}
               </ListItem>
             </List>
           </Card>
@@ -100,7 +136,7 @@ function Placeorder() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {cartItems.map(item => (
+                      {cartItems.map((item: any) => (
                         <TableRow key={item._id}>
                           <TableCell>
                             <NextLink href={`/product/${item.slug}`} passHref>
@@ -123,11 +159,10 @@ function Placeorder() {
                             </NextLink>
                           </TableCell>
                           <TableCell align="right">
-                            <Typography> {item.quantity} </Typography>
+                            <Typography>{item.quantity}</Typography>
                           </TableCell>
                           <TableCell align="right">
-                            {' '}
-                            <Typography>${item.price}</Typography>{' '}
+                            <Typography>${item.price}</Typography>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -138,7 +173,7 @@ function Placeorder() {
             </List>
           </Card>
         </Grid>
-        <Grid md={3} xs={12}>
+        <Grid item md={3} xs={12}>
           <Card className={classes.section}>
             <List>
               <ListItem>
@@ -189,10 +224,20 @@ function Placeorder() {
                 </Grid>
               </ListItem>
               <ListItem>
-                <Button variant="contained" color="primary" fullWidth>
+                <Button
+                  onClick={placeOrderHandler}
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                >
                   Place Order
                 </Button>
               </ListItem>
+              {loading && (
+                <ListItem>
+                  <CircularProgress />
+                </ListItem>
+              )}
             </List>
           </Card>
         </Grid>
@@ -201,4 +246,4 @@ function Placeorder() {
   )
 }
 
-export default dynamic(() => Promise.resolve(Placeorder), { ssr: false })
+export default dynamic(() => Promise.resolve(PlaceOrder), { ssr: false })

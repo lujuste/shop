@@ -1,13 +1,12 @@
 import db from './db'
-
-const getError = (err: any) =>
-  err.response && err.response.data && err.response.data.message
-    ? err.response.data.message
-    : err.message
-
-const onError = async (err: any, req: any, res: any, next: any) => {
+//@ts-ignore
+const getError = err =>
+  err?.response && err?.response?.data && err?.response?.data?.message
+    ? err?.response?.data?.message
+    : err?.message
+//@ts-ignore
+const onError = async (err, req, res, next) => {
   await db.disconnect()
-  res.status(500).send({ message: err.toString() })
+  res.status(500).send({ message: err?.toString() })
 }
-
 export { getError, onError }

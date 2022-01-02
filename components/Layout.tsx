@@ -9,7 +9,7 @@ import {
   Typography,
   Container,
   Link,
-  createMuiTheme,
+  createTheme,
   ThemeProvider,
   CssBaseline,
   Switch,
@@ -43,7 +43,7 @@ export default function Layout({ title, description, children }) {
   const router = useRouter()
   const { state, dispatch } = useContext(Store)
   const { darkMode, cart, userInfo } = state
-  const theme = createMuiTheme({
+  const theme = createTheme({
     typography: {
       h1: {
         fontSize: '1.6rem',
@@ -242,6 +242,7 @@ export default function Layout({ title, description, children }) {
                     keepMounted
                     open={Boolean(anchorEl)}
                     onClose={loginMenuCloseHandler}
+                    disableBackdropClick="true"
                   >
                     <MenuItem
                       onClick={e => loginMenuCloseHandler(e, '/profile')}
@@ -251,7 +252,7 @@ export default function Layout({ title, description, children }) {
                     <MenuItem
                       onClick={e => loginMenuCloseHandler(e, '/order-history')}
                     >
-                      Order Hisotry
+                      Order History
                     </MenuItem>
                     {userInfo.isAdmin && (
                       <MenuItem
@@ -263,6 +264,9 @@ export default function Layout({ title, description, children }) {
                       </MenuItem>
                     )}
                     <MenuItem onClick={logoutClickHandler}>Logout</MenuItem>
+                    <MenuItem onClick={loginMenuCloseHandler}>
+                      Fechar menu
+                    </MenuItem>
                   </Menu>
                 </>
               ) : (

@@ -1,25 +1,13 @@
-import type { NextPage } from 'next'
 import { useContext } from 'react'
 import axios from 'axios'
-import {
-  Grid,
-  Card,
-  CardActionArea,
-  CardMedia,
-  CardContent,
-  Typography,
-  CardActions,
-  Button,
-} from '@material-ui/core'
-
-import NextLink from 'next/link'
+import { Grid } from '@material-ui/core'
 
 import Layout from '../components/Layout'
 import db from '../utils/db'
 import Product from '../models/Product'
 import { Store } from '../utils/Store'
 import { useRouter } from 'next/router'
-import Rating from '@material-ui/lab/Rating'
+import ProductItem from '../components/ProductItem'
 
 interface IProductItem {
   _id?: string
@@ -66,39 +54,17 @@ const Home = ({ products }: IProductsProps) => {
   }
 
   return (
-    <Layout>
+    <Layout title="Home" description="">
       <div>
         <h1>Products</h1>
 
         <Grid container spacing={3}>
           {products.map(product => (
             <Grid item md={4} key={product.name}>
-              <Card>
-                <NextLink href={`/product/${product.slug}`}>
-                  <CardActionArea>
-                    <CardMedia
-                      component="img"
-                      image={product.image}
-                      title={product.name}
-                    ></CardMedia>
-                    <CardContent>
-                      <Typography>{product.name}</Typography>
-                      <Rating value={product.rating} readOnly></Rating>
-                    </CardContent>
-                  </CardActionArea>
-                </NextLink>
-                <CardActions>
-                  <Typography> ${product.price} </Typography>
-                  <Button
-                    onClick={() => addToCardHandler(product)}
-                    size="small"
-                    color="primary"
-                  >
-                    {' '}
-                    Add to cart
-                  </Button>
-                </CardActions>
-              </Card>
+              <ProductItem
+                product={product}
+                addToCardHandler={addToCardHandler}
+              />
             </Grid>
           ))}
         </Grid>

@@ -6,23 +6,34 @@ import {
   Toolbar,
   Container,
   Link,
+  IconButton,
   createTheme,
   CssBaseline,
   ThemeProvider,
   Switch,
+  Divider,
+  Drawer,
   Badge,
   Button,
+  List,
+  ListItem,
+  ListItemText,
   Menu,
   MenuItem,
+  Box,
 } from '@material-ui/core'
+import MenuIcon from '@material-ui/icons/Menu'
+import CancelIcon from '@material-ui/icons/Cancel'
 import Head from 'next/head'
-import React, { ReactElement, useContext, useState } from 'react'
+import React, { ReactElement, useContext, useEffect, useState } from 'react'
 import useStyles from '../utils/styles'
 import NextLink from 'next/link'
 import { Store } from '../utils/Store'
 import Cookies from 'js-cookie'
 
 import { useRouter } from 'next/router'
+import { useSnackbar } from 'notistack'
+import axios from 'axios'
 
 interface ILayout {
   children: ReactElement | ReactElement[]
@@ -62,6 +73,33 @@ function Layout({ children, title, description }: ILayout) {
   })
   const classes = useStyles()
 
+  const [sidebarVisible, setSidebarVisible] = useState(false)
+
+  const [categories, setCategories] = useState([])
+  const { enqueueSnackbar } = useSnackbar
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await axios.get(`/api/products/categories`)
+      setCategories(data)
+    } catch (err) {
+      console.log(err)
+      enqueueSnackbar('Deu algo errado!')
+    }
+  }
+
+  useEffect(() => {
+    fetchCategories()
+  }, [])
+
+  const sidebarOpenHandler = () => {
+    setSidebarVisible(true)
+  }
+
+  const sidebarCloseHandler = () => {
+    setSidebarVisible(false)
+  }
+
   const darkModeChangeHandler = () => {
     dispatch({
       type: darkMode ? 'DARK_MODE_OFF' : 'DARK_MODE_ON',
@@ -100,12 +138,58 @@ function Layout({ children, title, description }: ILayout) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <AppBar className={classes.navbar} position="static">
-          <Toolbar>
-            <NextLink href="/" passHref>
-              <Link>
-                <Typography className={classes.brand}>Juste Shop</Typography>
-              </Link>
-            </NextLink>
+          <Toolbar className={classes.toolbar}>
+            <Box display="flex" alignItems="center">
+              <IconButton
+                edge="start"
+                aria-label="open drawer"
+                onClick={sidebarOpenHandler}
+              >
+                <MenuIcon className={classes.navbarButton} />
+              </IconButton>
+              <NextLink href="/" passHref>
+                <Link>
+                  <Typography className={classes.brand}>Juste Shop</Typography>
+                </Link>
+              </NextLink>
+            </Box>
+
+            <Drawer
+              anchor="left"
+              open={sidebarVisible}
+              onClose={sidebarCloseHandler}
+            >
+              <List>
+                <ListItem>
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
+                    <Typography>Shopping by category</Typography>
+                    <IconButton
+                      aria-label="close"
+                      onClick={sidebarCloseHandler}
+                    >
+                      <CancelIcon />
+                    </IconButton>
+                  </Box>
+                </ListItem>
+                <Divider light />
+                {categories.map(category => (
+                  <NextLink
+                    key={category}
+                    href={`/search?category=${category}`}
+                    passHref
+                  >
+                    <ListItem>
+                      <ListItemText primary={category}> </ListItemText>
+                    </ListItem>
+                  </NextLink>
+                ))}
+              </List>
+            </Drawer>
+
             <div className={classes.grow}></div>
             <div>
               <Switch
@@ -114,17 +198,19 @@ function Layout({ children, title, description }: ILayout) {
               ></Switch>
               <NextLink href="/cart">
                 <Link>
-                  {cart?.cartItems.length > 0 ? (
-                    <Badge
-                      color="secondary"
-                      badgeContent={cart.cartItems.length}
-                    >
-                      {' '}
-                      Cart{' '}
-                    </Badge>
-                  ) : (
-                    'Cart'
-                  )}
+                  <Typography component="span">
+                    {cart?.cartItems.length > 0 ? (
+                      <Badge
+                        color="secondary"
+                        badgeContent={cart.cartItems.length}
+                      >
+                        {' '}
+                        Cart{' '}
+                      </Badge>
+                    ) : (
+                      'Cart'
+                    )}
+                  </Typography>
                 </Link>
               </NextLink>
 
@@ -170,7 +256,9 @@ function Layout({ children, title, description }: ILayout) {
                 </>
               ) : (
                 <NextLink href="/login">
-                  <Link>Login</Link>
+                  <Typography component="span">
+                    <Link>Login</Link>
+                  </Typography>
                 </NextLink>
               )}
             </div>

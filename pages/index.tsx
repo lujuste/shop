@@ -19,6 +19,7 @@ import db from '../utils/db'
 import Product from '../models/Product'
 import { Store } from '../utils/Store'
 import { useRouter } from 'next/router'
+import Rating from '@material-ui/lab/Rating'
 
 interface IProductItem {
   _id?: string
@@ -82,6 +83,7 @@ const Home = ({ products }: IProductsProps) => {
                     ></CardMedia>
                     <CardContent>
                       <Typography>{product.name}</Typography>
+                      <Rating value={product.rating} readOnly></Rating>
                     </CardContent>
                   </CardActionArea>
                 </NextLink>
@@ -109,7 +111,7 @@ export default Home
 
 export async function getServerSideProps() {
   await db.connect()
-  const products = await Product.find({}).lean()
+  const products = await Product.find({}, '-reviews').lean()
   await db.disconnect()
 
   return {
